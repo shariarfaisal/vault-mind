@@ -1,0 +1,9 @@
+{
+  "id": "vault-mind",
+  "name": "Vault Mind",
+  "version": "0.1.0",
+  "minAppVersion": "1.4.0",
+  "description": "An agentic AI agent embedded in your vault. It plans, searches, traverses links, reads notes, and answers with citations — powered by OpenRouter (free models supported).",
+  "author": "Hasan Mehdi",
+  "isDesktopOnly": true
+}

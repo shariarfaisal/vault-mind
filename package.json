@@ -1,0 +1,30 @@
+{
+  "name": "vault-mind",
+  "version": "0.1.0",
+  "description": "Agentic AI agent embedded in Obsidian, powered by OpenRouter.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production"
+  },
+  "keywords": [
+    "obsidian",
+    "ai",
+    "agent",
+    "openrouter",
+    "rag"
+  ],
+  "author": "Hasan Mehdi",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "builtin-modules": "^3.3.0",
+    "esbuild": "^0.20.0",
+    "obsidian": "latest",
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "@xenova/transformers": "^2.17.2",
+    "minisearch": "^7.1.0"
+  }
+}

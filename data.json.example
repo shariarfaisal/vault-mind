@@ -1,0 +1,22 @@
+{
+  "settings": {
+    "apiKey": "",
+    "model": "openrouter/free",
+    "freeOnly": false,
+    "maxIterations": 8,
+    "temperature": 0.2,
+    "topK": 6,
+    "enableWrites": true,
+    "draftFolder": "AI Drafts",
+    "skillsFolder": "Vault Mind Skills",
+    "useSemantic": false,
+    "embedModel": "Xenova/multilingual-e5-small",
+    "compressContext": true,
+    "contextBudgetChars": 14000,
+    "githubToken": "",
+    "githubRepo": "",
+    "usePlanner": false,
+    "memories": []
+  },
+  "sessions": []
+}

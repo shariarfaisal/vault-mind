@@ -1,0 +1,19 @@
+# SECRETS — Obsidian stores the OpenRouter API key here. NEVER commit.
+data.json
+
+# Dependencies
+node_modules/
+
+# Build output (Obsidian loads main.js; attach it to GitHub Releases, not the repo)
+main.js
+main.js.map
+
+# Tool / editor caches
+.fallow/
+.DS_Store
+*.log
+
+# Local env
+.env
+.env.*
+!.env.example
