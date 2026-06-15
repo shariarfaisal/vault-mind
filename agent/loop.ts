@@ -116,7 +116,7 @@ export async function runAgent(
   events: AgentEvents,
   signal: AbortSignal
 ): Promise<void> {
-  const max = settings.maxIterations || 8;
+  const max = settings.maxIterations || 12;
   const turnUsage: Usage = { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0, cost: 0 };
 
   // Re-anchor: tag the latest user message as the active request so weaker models

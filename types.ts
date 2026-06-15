@@ -92,7 +92,7 @@ export const DEFAULT_SETTINGS: VaultMindSettings = {
   apiKey: "",
   model: "openai/gpt-4o-mini",
   freeOnly: false,
-  maxIterations: 8,
+  maxIterations: 12,
   temperature: 0.2,
   topK: 6,
   enableWrites: false,
