@@ -263,6 +263,52 @@ class VaultMindSettingTab extends PluginSettingTab {
           .catch(() => modelSetting.setDesc("Default model id. Could not load list — check API key."));
       });
 
+    const researchModelSetting = new Setting(containerEl)
+      .setName("Research model")
+      .setDesc("Model for deep_research (deeper/longer). Leave blank to reuse the chat model.")
+      .addText((t) => {
+        t.setPlaceholder("(use chat model)")
+          .setValue(this.plugin.settings.researchModel)
+          .onChange(async (v) => {
+            this.plugin.settings.researchModel = v.trim();
+            await this.plugin.saveSettings();
+          });
+        const listId = "vm-research-model-datalist";
+        const dl = t.inputEl.ownerDocument.createElement("datalist");
+        dl.id = listId;
+        t.inputEl.setAttribute("list", listId);
+        t.inputEl.after(dl);
+        t.inputEl.style.minWidth = "240px";
+        const addOpt = (id: string) => { const o = document.createElement("option"); o.value = id; dl.appendChild(o); };
+        fetchModels(this.plugin.settings.apiKey, {})
+          .then((models) => { for (const m of models) addOpt(m.id); })
+          .catch(() => researchModelSetting.setDesc("Research model. Could not load list — check API key."));
+      });
+
+    new Setting(containerEl)
+      .setName("Max research steps")
+      .setDesc("Sub-questions investigated per deep_research run.")
+      .addSlider((s) =>
+        s
+          .setLimits(3, 30, 1)
+          .setValue(this.plugin.settings.maxResearchSteps)
+          .setDynamicTooltip()
+          .onChange(async (v) => {
+            this.plugin.settings.maxResearchSteps = v;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Research folder")
+      .setDesc("Where deep_research report notes are saved.")
+      .addText((t) =>
+        t.setValue(this.plugin.settings.researchFolder).onChange(async (v) => {
+          this.plugin.settings.researchFolder = v.trim() || "Research";
+          await this.plugin.saveSettings();
+        })
+      );
+
     new Setting(containerEl)
       .setName("Max agent steps")
       .setDesc("Tool-use iterations before forcing a final answer.")

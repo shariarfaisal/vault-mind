@@ -80,6 +80,9 @@ export interface VaultMindSettings {
   githubRepo: string; // owner/repo default
   usePlanner: boolean; // plan-then-execute pre-step
   memories: MemoryItem[]; // long-term memory
+  researchModel: string; // model for the deep_research sub-loop ("" => falls back to `model`)
+  maxResearchSteps: number; // gather-phase iteration budget for deep_research
+  researchFolder: string; // where research report notes are written
 }
 
 export interface MemoryItem {
@@ -106,6 +109,9 @@ export const DEFAULT_SETTINGS: VaultMindSettings = {
   githubRepo: "",
   usePlanner: false,
   memories: [],
+  researchModel: "",
+  maxResearchSteps: 15,
+  researchFolder: "Research",
 };
 
 export interface ChatSession {

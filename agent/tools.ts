@@ -2,9 +2,10 @@
 // Read tools + full CRUD (files, folders, canvas) + skills.
 
 import { App, TFile, TFolder, normalizePath, requestUrl } from "obsidian";
-import { ToolSchema, RetrievedChunk, VaultMindSettings } from "../types";
+import { ToolSchema, RetrievedChunk, VaultMindSettings, Usage } from "../types";
 import { Retriever } from "./retriever";
 import { SkillManager } from "./skills";
+import { runResearch } from "./research";
 import * as gh from "./github";
 
 export interface ToolContext {
@@ -24,6 +25,12 @@ export interface ToolContext {
   recall: (query: string) => string;
   // record an inverse op so the user can undo a mutation
   pushUndo: (entry: UndoEntry) => void;
+  // token/cost usage from nested LLM calls (e.g. the deep_research sub-loop)
+  onUsage?: (u: Usage) => void;
+  // progress line from a long-running tool (e.g. deep_research phases)
+  onResearchStep?: (label: string) => void;
+  // abort signal for long-running tools (e.g. deep_research) so Stop halts them
+  signal?: AbortSignal;
 }
 
 export interface UndoEntry {
@@ -203,6 +210,22 @@ export const TOOL_SCHEMAS: ToolSchema[] = [
           body: { type: "string", description: "Request body for POST/PUT/PATCH. For JSON, pass a JSON string and set Content-Type: application/json." },
         },
         required: ["url"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "deep_research",
+      description:
+        "Run a focused multi-step research task and write a structured, cited report note. Use for open-ended or multi-source questions that need real investigation across the web AND the user's vault (not a single lookup). It plans sub-questions, gathers and curates evidence without drifting, then writes a Research/ report note with citations. Returns the report path and a summary.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "The research question or topic." },
+          depth: { type: "integer", description: "Optional gather-step budget override (default from settings)." },
+        },
+        required: ["query"],
       },
     },
   },
@@ -546,6 +569,12 @@ export async function runTool(ctx: ToolContext, name: string, argsJson: string):
       } catch (e: any) {
         return `Error calling ${url}: ${e?.message || e}`;
       }
+    }
+    case "deep_research": {
+      const query = String(args.query || "").trim();
+      if (!query) return "Error: deep_research requires a query.";
+      const depth = typeof args.depth === "number" ? args.depth : undefined;
+      return await runResearch(ctx, query, depth);
     }
     case "list_plugins": {
       const plugins = (app as any).plugins;

@@ -218,8 +218,8 @@ export class AgentView extends ItemView {
     const out: string[] = [];
     if (noteA && noteB && noteA !== noteB) out.push(`What connects [[${noteA}]] and [[${noteB}]]?`);
     if (topFolder) out.push(`Summarize everything in "${topFolder}" and cite the notes.`);
+    out.push("Research a topic and write me a cited report.");
     out.push("What have I been working on lately, and what's still unfinished?");
-    out.push("Draft a note linking my ideas across the vault.");
     return out.slice(0, 4);
   }
 
@@ -780,6 +780,21 @@ export class AgentView extends ItemView {
       recall: (q) => this.plugin.recall(q),
       pushUndo: (e) => this.plugin.pushUndo(e),
       onFileTouched: (p) => { if (!touched.includes(p)) touched.push(p); },
+      // nested LLM usage (deep_research sub-loop) — count into the session totals
+      onUsage: (u) => {
+        this.sessionTokens += u.total_tokens || 0;
+        this.sessionCost += u.cost || 0;
+        this.updateUsageReadout();
+      },
+      // progress lines from long-running tools (deep_research phases)
+      onResearchStep: (label) => {
+        bubble.status.setText(label);
+        const line = bubble.trace.createDiv("vm-trace-line vm-think");
+        line.setText(label);
+        bubble.trace.style.display = "block";
+        this.scrollDown();
+      },
+      signal: this.abort.signal,
     };
 
     let liveEl: HTMLElement | null = null; // live-streaming text in the answer area
@@ -1025,6 +1040,7 @@ function toolIcon(name: string): string {
     case "web_search": return "globe";
     case "fetch_url": return "link-2";
     case "http_request": return "webhook";
+    case "deep_research": return "telescope";
     case "list_plugins": return "blocks";
     case "plugin_info": return "blocks";
     case "add_kanban_card": return "square-kanban";
@@ -1071,6 +1087,7 @@ function friendlyTitle(name: string, argsJson: string): string {
     case "web_search": return `Web search “${a.query ?? ""}”`;
     case "fetch_url": return `Fetched ${(a.url || "").replace(/^https?:\/\//, "").slice(0, 40)}`;
     case "http_request": return `${(a.method || "GET").toUpperCase()} ${(a.url || "").replace(/^https?:\/\//, "").slice(0, 40)}`;
+    case "deep_research": return `Researching “${(a.query || "").slice(0, 50)}”`;
     case "list_plugins": return "Listed plugins";
     case "plugin_info": return `Plugin · ${a.id ?? ""}`;
     case "add_kanban_card": return `Kanban card → ${a.list ?? ""}`;
@@ -1108,6 +1125,7 @@ function summarizeResult(name: string, result: string): string {
     case "web_search": return result.startsWith("No web") ? "0 results" : `${result.split("\n\n").length} results`;
     case "fetch_url": return result.startsWith("Error") ? "failed" : `${result.length.toLocaleString()} chars`;
     case "http_request": return result.startsWith("Error") ? "failed" : `${result.length.toLocaleString()} chars`;
+    case "deep_research": return result.startsWith("Error") ? "failed" : "report ready";
     case "add_kanban_card": return result.startsWith("Added") ? "added" : "skipped";
     case "list_plugins": return `${result.split("\n").filter(Boolean).length} plugins`;
     case "ask_user": return result.startsWith("User answered") ? "answered" : "dismissed";
