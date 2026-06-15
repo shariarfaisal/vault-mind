@@ -172,14 +172,55 @@ export class AgentView extends ItemView {
     const empty = this.threadEl.createDiv("vm-empty");
     empty.createEl("div", { text: "Ask me anything about your notes.", cls: "vm-empty-title" });
     const chips = empty.createDiv("vm-chips");
-    for (const s of [
-      "What connects my security notes to my job applications?",
-      "Summarize everything I know about this project.",
-      "What are the open threads across my recent notes?",
-    ]) {
+    for (const s of this.suggestedPrompts()) {
       const c = chips.createEl("button", { text: s, cls: "vm-chip" });
       c.onclick = () => { this.input.value = s; this.autosize(); this.ask(); };
     }
+  }
+
+  // Build starter prompts from the actual vault so chips feel personal.
+  // Falls back to generic prompts when the vault is empty.
+  private suggestedPrompts(): string[] {
+    const STATIC = [
+      "Find a surprising connection between two unrelated notes.",
+      "What have I been working on lately, and what's still unfinished?",
+      "Summarize what I know about a topic — and cite the notes.",
+    ];
+    const files = this.app.vault.getMarkdownFiles().filter((f) => !f.path.startsWith(".") && f.extension === "md");
+    if (files.length < 2) return STATIC;
+
+    // Two notes from different folders → highlights cross-domain graph traversal.
+    const byFolder = new Map<string, string[]>();
+    for (const f of files) {
+      const dir = f.parent?.path || "/";
+      if (!byFolder.has(dir)) byFolder.set(dir, []);
+      byFolder.get(dir)!.push(f.basename);
+    }
+    const folders = [...byFolder.keys()];
+    const pick = (arr: string[], i: number) => arr[i % arr.length];
+    let noteA: string, noteB: string;
+    if (folders.length >= 2) {
+      noteA = pick(byFolder.get(folders[0])!, 0);
+      noteB = pick(byFolder.get(folders[1])!, 0);
+    } else {
+      noteA = files[0].basename;
+      noteB = files[Math.min(1, files.length - 1)].basename;
+    }
+
+    // A meaningful top-level folder for a scoped summary.
+    const topFolders = folders
+      .map((p) => p.split("/")[0])
+      .filter((p) => p && p !== "/" && !p.startsWith("."));
+    const topFolder = topFolders.sort(
+      (a, b) => (byFolder.get(b)?.length || 0) - (byFolder.get(a)?.length || 0)
+    )[0];
+
+    const out: string[] = [];
+    if (noteA && noteB && noteA !== noteB) out.push(`What connects [[${noteA}]] and [[${noteB}]]?`);
+    if (topFolder) out.push(`Summarize everything in "${topFolder}" and cite the notes.`);
+    out.push("What have I been working on lately, and what's still unfinished?");
+    out.push("Draft a note linking my ideas across the vault.");
+    return out.slice(0, 4);
   }
 
   private resetChat() {
@@ -983,6 +1024,7 @@ function toolIcon(name: string): string {
     case "use_skill": return "wand-2";
     case "web_search": return "globe";
     case "fetch_url": return "link-2";
+    case "http_request": return "webhook";
     case "list_plugins": return "blocks";
     case "plugin_info": return "blocks";
     case "add_kanban_card": return "square-kanban";
@@ -1028,6 +1070,7 @@ function friendlyTitle(name: string, argsJson: string): string {
     case "use_skill": return `Skill · ${a.name ?? ""}`;
     case "web_search": return `Web search “${a.query ?? ""}”`;
     case "fetch_url": return `Fetched ${(a.url || "").replace(/^https?:\/\//, "").slice(0, 40)}`;
+    case "http_request": return `${(a.method || "GET").toUpperCase()} ${(a.url || "").replace(/^https?:\/\//, "").slice(0, 40)}`;
     case "list_plugins": return "Listed plugins";
     case "plugin_info": return `Plugin · ${a.id ?? ""}`;
     case "add_kanban_card": return `Kanban card → ${a.list ?? ""}`;
@@ -1064,6 +1107,7 @@ function summarizeResult(name: string, result: string): string {
     case "use_skill": return result.startsWith("Error") ? "not found" : "loaded";
     case "web_search": return result.startsWith("No web") ? "0 results" : `${result.split("\n\n").length} results`;
     case "fetch_url": return result.startsWith("Error") ? "failed" : `${result.length.toLocaleString()} chars`;
+    case "http_request": return result.startsWith("Error") ? "failed" : `${result.length.toLocaleString()} chars`;
     case "add_kanban_card": return result.startsWith("Added") ? "added" : "skipped";
     case "list_plugins": return `${result.split("\n").filter(Boolean).length} plugins`;
     case "ask_user": return result.startsWith("User answered") ? "answered" : "dismissed";

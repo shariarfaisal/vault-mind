@@ -188,6 +188,24 @@ export const TOOL_SCHEMAS: ToolSchema[] = [
       parameters: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "http_request",
+      description:
+        "Call any third-party HTTP/REST API and return the raw response (JSON or text). Use for authenticated or non-HTML data sources (e.g. public APIs, services with a token). Supply auth via the headers argument. Prefer fetch_url for reading human web pages; use this for structured/API data.",
+      parameters: {
+        type: "object",
+        properties: {
+          url: { type: "string", description: "Full request URL, including query string." },
+          method: { type: "string", description: "HTTP method (GET, POST, PUT, PATCH, DELETE). Default GET." },
+          headers: { type: "object", description: "Request headers as a JSON object, e.g. { \"Authorization\": \"Bearer ...\", \"Content-Type\": \"application/json\" }." },
+          body: { type: "string", description: "Request body for POST/PUT/PATCH. For JSON, pass a JSON string and set Content-Type: application/json." },
+        },
+        required: ["url"],
+      },
+    },
+  },
   // ---- plugins ----
   {
     type: "function",
@@ -504,6 +522,29 @@ export async function runTool(ctx: ToolContext, name: string, argsJson: string):
         return `URL: ${args.url}\n\n${htmlToText(res.text).slice(0, 8000)}`;
       } catch (e: any) {
         return `Error fetching URL: ${e?.message || e}`;
+      }
+    }
+    case "http_request": {
+      const url = String(args.url || "");
+      if (!url) return "Error: http_request requires a url.";
+      const method = String(args.method || "GET").toUpperCase();
+      // headers may arrive as an object or a JSON string depending on the model.
+      let headers: Record<string, string> = {};
+      try {
+        const h = typeof args.headers === "string" ? JSON.parse(args.headers) : args.headers;
+        if (h && typeof h === "object") for (const k of Object.keys(h)) headers[k] = String(h[k]);
+      } catch {
+        return "Error: headers must be a JSON object.";
+      }
+      const body = args.body != null ? String(args.body) : undefined;
+      try {
+        // requestUrl bypasses CORS and supports any method/headers/body.
+        const res = await requestUrl({ url, method, headers, body, throw: false });
+        const text = res.text || "";
+        const trimmed = text.length > 12000 ? text.slice(0, 12000) + `\n…[truncated, ${text.length} chars total]` : text;
+        return `${method} ${url} → ${res.status}\n\n${trimmed}`;
+      } catch (e: any) {
+        return `Error calling ${url}: ${e?.message || e}`;
       }
     }
     case "list_plugins": {

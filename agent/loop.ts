@@ -39,9 +39,13 @@ async function compressContext(
 ): Promise<number> {
   const firstUser = messages.findIndex((m) => m.role === "user");
   if (firstUser < 0) return 0;
-  const headEnd = firstUser + 1; // keep system..first user (the task)
+  const headEnd = firstUser + 1; // keep system..first user (the original goal)
   const keepTail = 3;
-  const tailStart = messages.length - keepTail;
+  // Never compress past the LATEST user message — it's the active request. Keep it
+  // plus everything after it raw, so multi-turn follow-ups aren't summarized away.
+  const lastUser = messages.map((m) => m.role).lastIndexOf("user");
+  let tailStart = messages.length - keepTail;
+  if (lastUser > headEnd) tailStart = Math.min(tailStart, lastUser);
   if (tailStart - headEnd < 3) return 0; // not enough middle to bother
 
   const middle = messages.slice(headEnd, tailStart);
@@ -87,12 +91,15 @@ Rules:
 - Be concise. Gather only the context you need (minimal context, maximum useful output).
 - When you have enough evidence, STOP calling tools and write the final grounded answer.
 - If the request is ambiguous or you must choose between options, use ask_user with suggested options instead of guessing. Wait for the answer, then continue.
+- MULTI-TURN: Always answer the LATEST user message — the one marked [Current request]. Earlier turns are context only. Never repeat or re-run a previous task (e.g. re-fetching, re-saving) unless the latest message explicitly asks for it.
 
 You can also ACT on the vault when asked: create_note, update_note, delete_file, create_folder, move_file, and create_canvas. Pick sensible paths. Destructive actions are confirmed by the user. When you create or change a file, mention it as a [[wikilink]] so the user can open it.
 
 You have SKILLS — reusable instruction recipes. If the user asks for something a skill covers, call list_skills then use_skill to follow its procedure.
 
 You can BROWSE the internet: web_search to find pages, fetch_url to read one. Use it for current/external info not in the vault, and cite the URL.
+
+You can call THIRD-PARTY APIs: http_request lets you hit any REST/JSON endpoint with a method, headers (for auth tokens), and body. Use it for structured external data (public APIs or services with a key); use fetch_url for human web pages. Never invent API keys — ask the user with ask_user if a token is needed.
 
 You know this vault's PLUGINS: list_plugins and plugin_info tell you what's installed. If the user has the Kanban plugin and a board, use add_kanban_card to add cards to a column.
 
@@ -111,6 +118,21 @@ export async function runAgent(
 ): Promise<void> {
   const max = settings.maxIterations || 8;
   const turnUsage: Usage = { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0, cost: 0 };
+
+  // Re-anchor: tag the latest user message as the active request so weaker models
+  // don't drift back to an earlier turn's task in multi-turn chats. We clone the
+  // message (don't mutate the caller's persisted history).
+  const lastUser = [...messages].reverse().findIndex((m) => m.role === "user");
+  if (lastUser >= 0) {
+    const idx = messages.length - 1 - lastUser;
+    const m = messages[idx];
+    const TAG = "[Current request] ";
+    if (typeof m.content === "string") {
+      messages[idx] = { ...m, content: TAG + m.content };
+    } else if (Array.isArray(m.content)) {
+      messages[idx] = { ...m, content: [{ type: "text", text: TAG.trim() }, ...m.content] };
+    }
+  }
 
   // Plan-then-execute: draft a short plan before acting (optional, more reliable).
   if (settings.usePlanner) {
