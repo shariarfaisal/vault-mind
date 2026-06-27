@@ -3,7 +3,8 @@ name: Release Obsidian plugin
 on:
   push:
     tags:
-      - "*.*.*"   # e.g. 0.1.0, 1.2.3 — must match manifest.json "version"
+      - "v*.*.*"   # e.g. v0.5.0, v1.2.3 — must match manifest.json "version" (with or without v prefix)
+      - "*.*.*"
 
 permissions:
   contents: write
@@ -27,6 +28,7 @@ jobs:
       - name: Verify tag matches manifest version
         run: |
           TAG="${GITHUB_REF_NAME}"
+          TAG="${TAG#v}"
           MANIFEST_VERSION="$(node -p "require('./manifest.json').version")"
           if [ "$TAG" != "$MANIFEST_VERSION" ]; then
             echo "::error::Tag $TAG does not match manifest.json version $MANIFEST_VERSION"
