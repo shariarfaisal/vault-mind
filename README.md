@@ -1,8 +1,14 @@
 # Vault Mind
 
-An agentic AI assistant embedded in your [Obsidian](https://obsidian.md) vault. It plans, searches, traverses links, reads your notes, and answers with citations — grounded in your actual knowledge graph, not the model's guesses. Powered by [OpenRouter](https://openrouter.ai) (300+ models, free models supported).
+An agentic AI assistant embedded in your [Obsidian](https://obsidian.md) vault. It plans, searches, traverses links, reads your notes, and answers with citations — grounded in your actual knowledge graph, not the model's guesses. Powered exclusively by [OpenRouter](https://openrouter.ai) (300+ models, $10 credit → 1000 free requests across all providers — no separate API keys needed).
 
 > Desktop only. All your notes stay local — only model API calls leave your machine.
+
+## Demo
+
+![Vault Mind agent answering a question with citations and tool traces](docs/demo.png)
+
+*The agent searches your vault, reads notes, and returns grounded answers with `[1]` citations and expandable tool traces showing every step.*
 
 ## Features
 
@@ -25,10 +31,13 @@ An agentic AI assistant embedded in your [Obsidian](https://obsidian.md) vault. 
 
 ## Setup
 
-1. Get an API key at [openrouter.ai/keys](https://openrouter.ai/keys) (free models available).
-2. Open **Vault Mind** settings → paste your key.
-3. Pick a model. For best agentic behavior choose a tool-capable model (sorted first in the picker).
-4. (Optional) Add a GitHub token to enable the GitHub connector.
+Vault Mind uses **only OpenRouter** — no separate OpenAI, Anthropic, or Google API keys needed.
+
+1. Create a free account at [openrouter.ai](https://openrouter.ai) and get an API key at [openrouter.ai/keys](https://openrouter.ai/keys).
+2. Add $10 credit — this unlocks **1000 free requests per provider** (OpenAI, Anthropic, Google, Meta, Mistral, DeepSeek, and 300+ more). Each provider resets its free tier independently.
+3. Open **Vault Mind** settings → paste your key.
+4. Pick a model. Tool-capable models are sorted first in the picker.
+5. (Optional) Add a GitHub token to enable the GitHub connector.
 
 Your key and settings are stored locally in `data.json` inside the plugin folder. **They are never committed** (see `.gitignore`).
 

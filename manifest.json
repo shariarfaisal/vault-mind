@@ -1,9 +1,9 @@
 {
   "id": "vault-mind",
   "name": "Vault Mind",
-  "version": "0.1.0",
+  "version": "0.5.0",
   "minAppVersion": "1.4.0",
-  "description": "An agentic AI agent embedded in your vault. It plans, searches, traverses links, reads notes, and answers with citations — powered by OpenRouter (free models supported).",
+  "description": "An autonomous AI agent for Obsidian. Searches, reads, writes notes, browses the web, and cites everything — powered by OpenRouter.",
   "author": "Hasan Mehdi",
   "isDesktopOnly": true
 }
