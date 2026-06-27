@@ -1,6 +1,8 @@
 # Vault Mind
 
-An agentic AI assistant embedded in your [Obsidian](https://obsidian.md) vault. It plans, searches, traverses links, reads your notes, and answers with citations — grounded in your actual knowledge graph, not the model's guesses. Powered exclusively by [OpenRouter](https://openrouter.ai) (300+ models, $10 credit → 1000 free requests across all providers — no separate API keys needed).
+An autonomous AI agent embedded in your [Obsidian](https://obsidian.md) vault. It plans, searches, traverses links, reads notes, processes files, and answers with citations — grounded in your actual knowledge graph, not the model's guesses.
+
+Powered exclusively by [OpenRouter](https://openrouter.ai). Deposit a $10 credit to unlock 1,000 free requests/day across all free model variants — no separate API keys needed.
 
 > Desktop only. All your notes stay local — only model API calls leave your machine.
 
@@ -10,18 +12,16 @@ An agentic AI assistant embedded in your [Obsidian](https://obsidian.md) vault. 
 
 *The agent searches your vault, reads notes, and returns grounded answers with `[1]` citations and expandable tool traces showing every step.*
 
-## Features
+## Key Features
 
-- **Grounded answers** — searches your vault, follows `[[links]]` and backlinks, cites every claim with a clickable `[[wikilink]]`
-- **Agentic loop** — plan-then-execute reasoning over your notes, with optional planner phase
-- **Hybrid retrieval** — keyword (MiniSearch / BM25) + optional local semantic search via on-device embeddings (`@xenova/transformers`, ONNX) — no data leaves your machine for retrieval
-- **Vault mutations** — create, update, move, delete notes and canvases (destructive actions confirmed by you), with one-click undo
-- **Skills** — reusable instruction recipes the agent can follow
-- **Web browsing** — search the internet and read pages for external context
-- **GitHub connector** — read repos/issues/commits, import issues into your vault as notes
-- **Kanban integration** — add cards to boards if the Kanban plugin is installed
-- **Long-term memory** — remembers durable facts, decisions, and preferences across sessions
-- **Token + cost tracking** — real API consumption per message and per session
+- **Hybrid Graph Retrieval** — Combines BM25 keywords, local ONNX vector embeddings, and link graph traversal.
+- **File & Attachment Support** — Ingests and processes files alongside your standard Markdown notes.
+- **User-Defined Skills** — Store custom prompts, specialized macros, or instructions as regular vault notes that the agent can read and execute as repeatable skills.
+- **Deep Research Sub-loop** — Spawns a dedicated sub-agent to break complex research into sub-questions, scrape web data, and compile cited Markdown reports.
+- **Vault mutations** — create, update, move, delete notes and canvases (destructive actions confirmed by you), with one-click undo.
+- **Web browsing** — search the internet and read pages for external context.
+- **Long-term memory** — remembers durable facts, decisions, and preferences across sessions.
+- **Token + cost tracking** — real API consumption per message and per session.
 
 ## Install (manual)
 
@@ -31,15 +31,15 @@ An agentic AI assistant embedded in your [Obsidian](https://obsidian.md) vault. 
 
 ## Setup
 
-Vault Mind uses **only OpenRouter** — no separate OpenAI, Anthropic, or Google API keys needed.
+Vault Mind uses **only OpenRouter** — no separate OpenAI, Anthropic, or Google API keys required.
 
-1. Create a free account at [openrouter.ai](https://openrouter.ai) and get an API key at [openrouter.ai/keys](https://openrouter.ai/keys).
-2. Add $10 credit — this unlocks **1000 free requests per provider** (OpenAI, Anthropic, Google, Meta, Mistral, DeepSeek, and 300+ more). Each provider resets its free tier independently.
-3. Open **Vault Mind** settings → paste your key.
-4. Pick a model. Tool-capable models are sorted first in the picker.
-5. (Optional) Add a GitHub token to enable the GitHub connector.
+1. Create a free account at [openrouter.ai](https://openrouter.ai) and generate an API key at [openrouter.ai/keys](https://openrouter.ai/keys).
+2. Add a minimum of **$10 credit** to your balance. This permanently upgrades your account tier, unlocking a pool of **1,000 free requests per day** on free models (IDs ending in `:free`) instead of the standard 50/day limit.
+3. Open **Vault Mind** settings inside Obsidian → paste your API key.
+4. Pick a model. Tool-capable models are sorted first in the picker for the best agentic experience.
+5. (Optional) Add a GitHub token to enable the GitHub repository connector.
 
-Your key and settings are stored locally in `data.json` inside the plugin folder. **They are never committed** (see `.gitignore`).
+Your key and settings are stored locally in `data.json` inside your plugin folder. They are strictly private and never leave your machine.
 
 ## Build from source
 
@@ -63,4 +63,4 @@ PRs welcome. Copy `data.json.example` → `data.json` is **not** needed — Obsi
 
 ## License
 
-[MIT](LICENSE) © Hasan Mehdi
+[MIT](LICENSE) © Shariar Faisal
